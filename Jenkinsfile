@@ -1,13 +1,17 @@
 node {
-   stage('Build docker container') {
-       checkout([$class: 'GitSCM', ...])
-       sh "docker build -t webapp ."
-   }
-   stage('test build') {
-       sh "mkdir -p rspec screenshots"
-       sh "docker run -v /var/jenkins_home/workspace/webapp/rspec/junit.xml:/myapp/junit.xml -v /var/jenkins_home/workspace/webapp/screenshots:/myapp/tmp/capybara -v webapp bundle exec rspec"
-   }
-   stage('Results') {
-      junit 'rspec/junit*.xml'
-      archive 'screenshots/*'
-   }
+    stage "Create build output"
+    
+    // Make the output directory.
+    sh "mkdir -p output"
+
+    // Write an useful file, which is needed to be archived.
+    writeFile file: "output/usefulfile.txt", text: "This file is useful, need to archive it."
+
+    // Write an useless file, which is not needed to be archived.
+    writeFile file: "output/uselessfile.md", text: "This file is useless, no need to archive it."
+
+    stage "Archive build output"
+    
+    // Archive the build output artifacts.
+    archiveArtifacts artifacts: 'output/*.txt', excludes: 'output/*.md'
+}
