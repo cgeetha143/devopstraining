@@ -1,22 +1,13 @@
-pipeline {
-    agent any
-    stages {
-        stage('Build') {
-            steps {
-                sh './gradlew build'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh './gradlew check'
-            }
-        }
-    }
-
-    post {
-        always {
-            archive 'build/libs/**/*.jar'
-            junit 'build/reports/**/*.xml'
-        }
-    }
-}
+node {
+   stage('Build docker container') {
+       checkout([$class: 'GitSCM', ...])
+       sh "docker build -t webapp ."
+   }
+   stage('test build') {
+       sh "mkdir -p rspec screenshots"
+       sh "docker run -v /var/jenkins_home/workspace/webapp/rspec/junit.xml:/myapp/junit.xml -v /var/jenkins_home/workspace/webapp/screenshots:/myapp/tmp/capybara -v webapp bundle exec rspec"
+   }
+   stage('Results') {
+      junit 'rspec/junit*.xml'
+      archive 'screenshots/*'
+   }
