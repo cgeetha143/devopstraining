@@ -1,15 +1,15 @@
+stage 'checkout'
+node ('master'){
+    checkout scm
+}
 
-pipeline
-{
+stage 'build'
+node ('master'){
 
-agent any
-stages {
-  stage ('Build') {
- 
- steps     {
- 
-      sh "mvn clean install"
- 
-    } 
-  }
+     
+   withEnv(["JAVA_HOME=${ tool 'jdk8' }", "PATH+MAVEN=${tool 'maven3'}/bin:${env.JAVA_HOME}/bin"]) {
+
+   
+    sh "mvn clean verify"
+}
 }
